@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">YOUR_SERVER_IP</domain>
+    </domain-config>
+    <!-- Domain configuration for Microsoft authentication endpoints -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">login.microsoftonline.com</domain>
+        <domain includeSubdomains="true">login.microsoft.com</domain>
+        <domain includeSubdomains="true">login.windows.net</domain>
+        <domain includeSubdomains="true">sts.windows.net</domain>
+        <domain includeSubdomains="true">graph.microsoft.com</domain>
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </domain-config>
+
+    <!-- Domain configuration for your CRM endpoints -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">hausverwaltung-q.crm4.dynamics.com</domain>
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </domain-config>
+
+    <!-- Debug-only configuration for testing -->
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="user"/>
+        </trust-anchors>
+    </debug-overrides>
+</network-security-config>

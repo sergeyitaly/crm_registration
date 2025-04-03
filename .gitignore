@@ -1,0 +1,14 @@
+.env
+.vscode
+*/venv/
+local.properties
+*.keystore
+/app/src/main/assets/secrets.properties
+/local.properties
+.idea/
+.gradle/
+build/
+*.iml
+local.properties
+app/secrets.xmlapp/src/main/assets/secrets.properties
+crm-registration-app/app/src/main/assets/secrets.properties

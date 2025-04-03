@@ -1,0 +1,11 @@
+__pycache__
+*.pyc
+.env
+.git
+.env
+.vscode
+*/venv/
+local.properties
+*.keystore
+/app/src/main/assets/secrets.properties
+/local.properties

@@ -1,0 +1,29 @@
+cd crm-registration-api
+source venv/bin/activate
+uvicorn main:app --reload
+
+
+cd crm-registration-app
+export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+# 1. Completely clean the project
+./gradlew --stop
+rm -rf ~/.gradle/caches/
+rm -rf build/
+rm -rf .gradle/
+
+# 2. Verify JDK 17 is being used
+export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+echo 'export JAVA_HOME=$(/usr/libexec/java_home -v 17)' >> ~/.zshrc
+
+java -version # Should show 17.x.x
+
+# 3. Rebuild with clean state
+./gradlew clean
+./gradlew build --refresh-dependencies
+
+./gradlew bundleRelease
+
+
+./gradlew --stop
+./gradlew clean
+./gradlew assembleDebug --stacktrace
