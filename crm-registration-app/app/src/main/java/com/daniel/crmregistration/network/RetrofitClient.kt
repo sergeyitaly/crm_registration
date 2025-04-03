@@ -53,16 +53,17 @@ object RetrofitClientBasic {
     // Choose the appropriate base URL for your environment:
     
     // 1. For local development (Android emulator connecting to localhost)
-    private const val LOCAL_DEV_URL = "http://10.0.2.2:8000/" 
+    //private const val LOCAL_DEV_URL = "http://10.0.2.2:8000/" 
     
     // 2. For local network (physical device connecting to your dev machine)
     // private const val LOCAL_NETWORK_URL = "http://YOUR_LOCAL_IP:8000/"
     
     // 3. For production/staging server
-    // private const val PRODUCTION_URL = "https://your-api-domain.com/"
+     private const val PRODUCTION_URL = "https://crm-registration.fly.dev/"
     
     // Currently using local dev URL (change as needed)
-    private const val BASE_URL = LOCAL_DEV_URL
+    //private const val BASE_URL = LOCAL_DEV_URL
+    private const val BASE_URL = PRODUCTION_URL
 
     val instance: ApiService by lazy {
         Retrofit.Builder()
