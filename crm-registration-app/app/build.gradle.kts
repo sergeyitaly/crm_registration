@@ -45,11 +45,7 @@ android {
         buildConfig = true
 
     }
-    buildConfigField(
-        "String", 
-        "CRM_BASE_URL", 
-        secretsProperties["CRM_BASE_URL"] as String
-    )
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.7"
     }
