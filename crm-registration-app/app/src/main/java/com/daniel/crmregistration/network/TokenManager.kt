@@ -16,42 +16,57 @@ import javax.inject.Singleton
 
 @Singleton
 class TokenManager @Inject constructor(
-    @ApplicationContext context: Context,
-    secrets: Secrets,
-    @Named("tokenClient") okHttpClient: OkHttpClient
+    @ApplicationContext private val context: Context,
+    private val secrets: Secrets,
+    @Named("tokenClient") private val okHttpClient: OkHttpClient
 ) {
-    private val context: Context = context
-    private val secrets: Secrets = secrets
-    private val okHttpClient: OkHttpClient = okHttpClient
+    private var cachedAuthToken: String? = null
+    private var authTokenExpiry: Long = 0
 
-    private var cachedToken: String? = null
-    private var tokenExpiry: Long = 0
+    private var cachedCrmToken: String? = null
+    private var crmTokenExpiry: Long = 0
 
     suspend fun getAuthToken(): String {
-        if (cachedToken != null && System.currentTimeMillis() < tokenExpiry) {
-            return cachedToken!!
+        return getToken(::acquireNewAuthToken, ::cachedAuthToken, ::authTokenExpiry) {
+            cachedAuthToken = it
+            authTokenExpiry = System.currentTimeMillis() + 3600000
         }
+    }
 
+    fun getAuthTokenBlocking(): String = runBlocking {
+        getAuthToken()
+    }
+
+    suspend fun getCrmToken(): String {
+        return getToken(::acquireNewCrmToken, ::cachedCrmToken, ::crmTokenExpiry) {
+            cachedCrmToken = it
+            crmTokenExpiry = System.currentTimeMillis() + 3600000
+        }
+    }
+
+    private suspend fun getToken(
+        acquireToken: suspend () -> String,
+        cachedToken: () -> String?,
+        expiryTime: () -> Long,
+        updateCache: (String) -> Unit
+    ): String {
+        if (cachedToken() != null && System.currentTimeMillis() < expiryTime()) {
+            return cachedToken()!!
+        }
         return withContext(Dispatchers.IO) {
-            acquireNewToken().also {
-                cachedToken = it
-                tokenExpiry = System.currentTimeMillis() + 3600000 // 1 hour expiry
-            }
+            acquireToken().also(updateCache)
         }
     }
 
-    fun getAuthTokenBlocking(): String = runBlocking { getAuthToken() }
-
-    private suspend fun acquireNewToken(): String {
-        return try {
-            val tokenResponse = requestNewToken()
-            "Bearer ${tokenResponse.accessToken}"
-        } catch (e: Exception) {
-            throw Exception("Failed to acquire token: ${e.message}")
-        }
+    private suspend fun acquireNewAuthToken(): String {
+        return "Bearer " + requestToken().accessToken
     }
 
-    private suspend fun requestNewToken(): TokenResponse {
+    private suspend fun acquireNewCrmToken(): String {
+        return "Bearer " + requestToken().accessToken
+    }
+
+    private suspend fun requestToken(): TokenResponse {
         val requestBody = FormBody.Builder()
             .add("client_id", secrets.clientId)
             .add("client_secret", secrets.clientSecret)

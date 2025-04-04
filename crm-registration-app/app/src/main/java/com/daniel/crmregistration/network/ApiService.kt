@@ -6,6 +6,7 @@ import retrofit2.Response
 import retrofit2.http.*
 
 interface ApiService {
+    // Backend endpoints (Fly.io)
     @POST("contacts")
     suspend fun createContact(
         @Body contact: Contact,
@@ -14,10 +15,12 @@ interface ApiService {
 
     @GET("health")
     suspend fun healthCheck(): Response<HealthCheckResponse>
-
+    
     @GET("crm-entity-link")
     suspend fun getCrmEntityLink(
-        @Query("entity_name") entityName: String,
-        @Header("Authorization") authToken: String
+        @Query("entity_name") entityName: String
     ): Response<CrmEntityLinkResponse>
+
+    @GET("contacts({id})")
+    suspend fun getCrmContactDirect(@Path("id") id: String): Response<Contact>
 }

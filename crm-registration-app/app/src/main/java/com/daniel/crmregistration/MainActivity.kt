@@ -121,8 +121,7 @@ class RegistrationActivity : AppCompatActivity() {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val response = apiService.getCrmEntityLink(
-                        entityName = "contact", 
-                        authToken = authToken
+                        entityName = "contact"
                     )
                     
                     withContext(Dispatchers.Main) {

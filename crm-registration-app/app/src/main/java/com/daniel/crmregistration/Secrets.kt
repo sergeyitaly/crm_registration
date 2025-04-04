@@ -59,6 +59,11 @@ class Secrets @Inject constructor(
     val clientSecret: String get() = getRequiredProperty("CLIENT_SECRET")
     val resource: String get() = getRequiredProperty("RESOURCE")
     val appId: String get() = getRequiredProperty("APP_ID")
+    val prodBaseUrl: String get() = getRequiredProperty("PROD_BASE_URL")
+    val localBaseUrl: String get() = getRequiredProperty("CRM_BASE_URL")
+    fun getBackendBaseUrl(): String {
+        return if (BuildConfig.DEBUG) localBaseUrl else prodBaseUrl
+    }
 }
 
 // Custom exception classes

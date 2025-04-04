@@ -19,7 +19,7 @@ class CrmRepository @Inject constructor(
 
     suspend fun getCrmEntityLink(entityName: String) = try {
         val token = tokenManager.getAuthToken()
-        apiService.getCrmEntityLink(entityName, token)
+        apiService.getCrmEntityLink(entityName)
     } catch (e: Exception) {
         throw Exception("Failed to get CRM link: ${e.message}")
     }
