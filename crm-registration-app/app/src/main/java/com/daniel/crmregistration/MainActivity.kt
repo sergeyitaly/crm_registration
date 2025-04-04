@@ -114,22 +114,19 @@ class RegistrationActivity : AppCompatActivity() {
         setupCrmLink()
     }
 
-    private fun setupCrmLink(contactId: String) {
-        binding.tvCrmLink.setOnClickListener {
-            lifecycleScope.launch {
-                try {
-                    val crmLink = crmRepository.generateContactLink(contactId)
-                    val browserIntent = Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse(crmLink)
-                    )
-                    startActivity(browserIntent)
-                } catch (e: Exception) {
-                    showToast("Error: ${e.message}")
-                }
+private fun setupCrmContactsLink() {
+    binding.tvCrmLink.setOnClickListener {
+        lifecycleScope.launch {
+            try {
+                val crmLink = crmRepository.getAllContactsLink()
+                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(crmLink))
+                startActivity(browserIntent)
+            } catch (e: Exception) {
+                showToast("Error: ${e.message}")
             }
         }
     }
+}
 
 private fun submitFormToBackend() {
     if (!validateForm()) return  // Stop if validation fails

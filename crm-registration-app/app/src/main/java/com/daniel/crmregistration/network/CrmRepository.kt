@@ -42,4 +42,18 @@ class CrmRepository @Inject constructor(
         }
     }
 
+    suspend fun getAllContactsLink(): String {
+        return try {
+            val response = apiService.getCrmContactsLink()
+            if (response.isSuccessful) {
+                response.body()?.crm_contacts_link ?: throw Exception("Empty link response")
+            } else {
+                throw Exception("Failed to get contacts link: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            throw Exception("Failed to get CRM contacts link: ${e.message}")
+        }
+    }
+
+
 }
