@@ -21,6 +21,15 @@ interface ApiService {
         @Query("entity_name") entityName: String
     ): Response<CrmEntityLinkResponse>
 
-    @GET("contacts({id})")
-    suspend fun getCrmContactDirect(@Path("id") id: String): Response<Contact>
+
+    @GET("contacts({id})/generate-link")
+    suspend fun generateCrmContactLink(
+        @Path("id") contactId: String,
+        @Query("app_id") appId: String
+    ): Response<CrmLinkResponse>
+    
+    data class CrmLinkResponse(
+        val link: String
+    )
+
 }

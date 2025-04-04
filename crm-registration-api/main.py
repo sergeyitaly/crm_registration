@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, Query
 import requests
 from msal import ConfidentialClientApplication
 import logging
@@ -44,6 +44,27 @@ async def get_crm_entity_link(entity_name: str, authorization: Optional[str] = H
     except Exception as e:
         logger.error(f"Error generating CRM entity link: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error generating CRM entity link: {str(e)}")
+
+
+@app.get("/contacts({contact_id})/generate-link")
+async def generate_contact_link(
+    contact_id: str,
+    app_id: str = Query(..., alias="app_id")
+):
+    # Validate the app_id if needed
+    if app_id != os.getenv("APP_ID"):
+        raise HTTPException(status_code=403, detail="Invalid app ID")
+    
+    # Generate the CRM link
+    crm_link = (
+        f"{os.getenv('CRM_MAIN_URL')}main.aspx?"
+        f"appid={app_id}&"
+        f"pagetype=entityrecord&"
+        f"etn=contact&"
+        f"id={contact_id}"
+    )
+    
+    return {"link": crm_link}
 
 # API Endpoints
 @app.post("/contacts")

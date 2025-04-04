@@ -114,33 +114,18 @@ class RegistrationActivity : AppCompatActivity() {
         setupCrmLink()
     }
 
-    private fun setupCrmLink() {
+    private fun setupCrmLink(contactId: String) {
         binding.tvCrmLink.setOnClickListener {
-            val authToken = "Bearer ${secrets.clientSecret}"
-            
-            CoroutineScope(Dispatchers.IO).launch {
+            lifecycleScope.launch {
                 try {
-                    val response = apiService.getCrmEntityLink(
-                        entityName = "contact"
+                    val crmLink = crmRepository.generateContactLink(contactId)
+                    val browserIntent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(crmLink)
                     )
-                    
-                    withContext(Dispatchers.Main) {
-                        if (response.isSuccessful) {
-                            response.body()?.let { linkResponse ->
-                                val browserIntent = Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse(linkResponse.crm_entity_link)
-                                )
-                                startActivity(browserIntent)
-                            } ?: showToast("Invalid CRM link received")
-                        } else {
-                            showToast("Failed to get CRM link: ${response.code()}")
-                        }
-                    }
+                    startActivity(browserIntent)
                 } catch (e: Exception) {
-                    withContext(Dispatchers.Main) {
-                        showToast("Error: ${e.message}")
-                    }
+                    showToast("Error: ${e.message}")
                 }
             }
         }
