@@ -1,29 +1,27 @@
-# Stage 1: Build stage
-FROM python:3.9 as python-build
+FROM python:3.9
 
 WORKDIR /app
 
-# Copy requirements first for better caching
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc python3-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for caching
 COPY crm-registration-api/requirements.txt .
 
-# Create virtual environment and install dependencies
-RUN python -m venv /app/venv
-RUN /app/venv/bin/pip install --no-cache-dir --upgrade pip && \
-    /app/venv/bin/pip install --no-cache-dir -r requirements.txt
-
-# Stage 2: Runtime stage
-FROM python:3.9-slim
-
-WORKDIR /app
-
-# Copy only the virtual environment from the build stage
-COPY --from=python-build /app/venv /app/venv
+# Install Python dependencies globally (no virtualenv)
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install requests uvicorn fastapi  # Explicit install as fallback
 
 # Copy application code
 COPY crm-registration-api/ .
 
-# Ensure Python uses our virtual environment
-ENV PATH="/app/venv/bin:$PATH"
+# Verify installations
+RUN python -c "import requests; print(f'Requests version: {requests.__version__}')" && \
+    python -c "import uvicorn; print(f'Uvicorn version: {uvicorn.__version__}')" && \
+    python -c "import fastapi; print(f'FastAPI version: {fastapi.__version__}')"
 
 EXPOSE 8000
 
