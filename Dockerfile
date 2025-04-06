@@ -1,20 +1,30 @@
-# Dockerfile
-FROM python:3.11
+# Stage 1: Build stage
+FROM python:3.9 as python-build
 
-# Set working directory
 WORKDIR /app
 
-# Copy the entire API directory
+# Copy requirements first for better caching
+COPY crm-registration-api/requirements.txt .
+
+# Create virtual environment and install dependencies
+RUN python -m venv /app/venv
+RUN /app/venv/bin/pip install --no-cache-dir --upgrade pip && \
+    /app/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# Stage 2: Runtime stage
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Copy only the virtual environment from the build stage
+COPY --from=python-build /app/venv /app/venv
+
+# Copy application code
 COPY crm-registration-api/ .
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Ensure Python uses our virtual environment
+ENV PATH="/app/venv/bin:$PATH"
 
-# For debugging (optional)
-RUN ls -al
-
-# Expose port
 EXPOSE 8000
 
-# Run the application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
