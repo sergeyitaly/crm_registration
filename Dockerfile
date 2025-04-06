@@ -1,11 +1,10 @@
 # Dockerfile
-
 FROM python:3.9
 
 # Set working directory
 WORKDIR /app
 
-# Copy only requirements first for better caching
+# Copy requirements first for better caching
 COPY crm-registration-api/requirements.txt .
 
 # Install dependencies
@@ -14,6 +13,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application
 COPY crm-registration-api/ .
 
+RUN ls -al
 # Expose port
 EXPOSE 8000
 
