@@ -12,6 +12,9 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 import io
 import base64
+from pydantic import EmailStr
+from fastapi import status
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,12 +24,41 @@ app = FastAPI()
 
 # CRM API Configuration
 CRM_URL = os.getenv("CRM_URL")
+CRM_MAIN_URL = os.getenv("CRM_MAIN_URL")
 TENANT_ID = os.getenv("TENANT_ID")
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 RESOURCE = os.getenv("RESOURCE")
 APP_ID = os.getenv("APP_ID")
 
+
+# Add this to your configuration
+CUSTOMIZATION_PREFIX = os.getenv("CUSTOMIZATION_PREFIX", "new_")  # Default to 'new_' if not set
+
+# Update your CUSTOM_FIELDS to use the prefix
+CUSTOM_FIELDS = [
+    {
+        "SchemaName": f"{CUSTOMIZATION_PREFIX}bankaccount",  # Note: removed underscore for camelCase
+        "DisplayName": {"LocalizedLabels": [{"Label": "Bank Account", "LanguageCode": 1033}]},
+        "Description": {"LocalizedLabels": [{"Label": "Bank account number", "LanguageCode": 1033}]},
+        "AttributeType": "String",
+        "MaxLength": 100
+    },
+    {
+        "SchemaName": f"{CUSTOMIZATION_PREFIX}passportid",
+        "DisplayName": {"LocalizedLabels": [{"Label": "Passport ID", "LanguageCode": 1033}]},
+        "Description": {"LocalizedLabels": [{"Label": "Passport identification", "LanguageCode": 1033}]},
+        "AttributeType": "String",
+        "MaxLength": 50
+    },
+    {
+        "SchemaName": f"{CUSTOMIZATION_PREFIX}appartmentid",
+        "DisplayName": {"LocalizedLabels": [{"Label": "Appartment ID", "LanguageCode": 1033}]},
+        "Description": {"LocalizedLabels": [{"Label": "ID of the appartment", "LanguageCode": 1033}]},
+        "AttributeType": "String",
+        "MaxLength": 50
+    }
+]
 
 def get_access_token():
     authority = f"https://login.microsoftonline.com/{TENANT_ID}"
@@ -35,10 +67,156 @@ def get_access_token():
         authority=authority,
         client_credential=CLIENT_SECRET
     )
+    # Explicitly add "/.default" to scopes
+    result = app.acquire_token_for_client(scopes=[f"{CRM_MAIN_URL}/.default"])
     
-    result = app.acquire_token_for_client(scopes=[RESOURCE])
-    return result.get("access_token")
+    if "access_token" not in result:
+        logger.error(f"Token error: {result.get('error_description')}")
+        raise HTTPException(status_code=401, detail="CRM authentication failed")
+    
+    logger.info("Token acquired successfully")
+    return result["access_token"]
 
+
+def get_existing_contact_attributes(access_token: str):
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Accept": "application/json"
+    }
+    url = f"{CRM_MAIN_URL}/api/data/v9.0/EntityDefinitions(LogicalName='contact')/Attributes?$select=LogicalName"
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        logger.error(f"Error fetching contact attributes: {response.text}")
+        raise HTTPException(status_code=500, detail="Failed to fetch contact attributes")
+    return [attr["LogicalName"] for attr in response.json()["value"]]
+
+
+def create_custom_field(field: dict, access_token: str):
+    # Ensure URL ends with slash
+    crm_url = CRM_MAIN_URL if CRM_MAIN_URL.endswith('/') else CRM_MAIN_URL + '/'
+    url = f"{crm_url}api/data/v9.0/EntityDefinitions(LogicalName='contact')/Attributes"
+    
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+        "SchemaName": field["SchemaName"],
+        "DisplayName": field["DisplayName"],
+        "Description": field["Description"],
+        "RequiredLevel": {"Value": "None"},
+        "MaxLength": field["MaxLength"],
+        "FormatName": {"Value": "Text"}
+    }
+
+    logger.info(f"Request URL: {url}")
+    logger.info(f"Request Payload: {payload}")
+
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        logger.info(f"Response: {response.status_code} - {response.text}")
+
+        if response.status_code not in [200, 204]:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to create field {field['SchemaName']}: {response.text}"
+            )
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request failed: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Network error while creating field {field['SchemaName']}"
+        )
+
+def publish_customizations(access_token: str):
+    url = f"{CRM_MAIN_URL}/api/data/v9.2/PublishAllXml"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(url, headers=headers)
+    if response.status_code not in [200, 204]:
+        logger.error(f"Failed to publish customizations: {response.text}")
+        raise HTTPException(status_code=500, detail="Failed to publish customizations")
+    logger.info("Customizations published successfully.")
+
+
+@app.get("/customize-contact-entity/", status_code=status.HTTP_200_OK)
+def check_custom_fields():
+    """Check which custom fields exist in the contact entity"""
+    try:
+        access_token = get_access_token()
+        existing_attrs = get_existing_contact_attributes(access_token)
+        
+        # Prepare response showing which fields exist
+        field_status = []
+        for field in CUSTOM_FIELDS:
+            exists = field["SchemaName"].lower() in existing_attrs
+            field_status.append({
+                "field_name": field["SchemaName"],
+                "display_name": field["DisplayName"]["LocalizedLabels"][0]["Label"],
+                "exists": exists
+            })
+        
+        return {
+            "message": "Current status of custom fields",
+            "fields": field_status,
+            "needs_publishing": False  # We can't determine this from just checking attributes
+        }
+    except Exception as e:
+        logger.error(f"Error checking custom fields: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to check custom fields status"
+        )
+
+@app.post("/customize-contact-entity/", status_code=status.HTTP_200_OK)
+def customize_contact_entity():
+    """Create missing custom fields and publish customizations"""
+    try:
+        access_token = get_access_token()
+        existing_attrs = get_existing_contact_attributes(access_token)
+        
+        created_fields = []
+        existing_fields = []
+        
+        for field in CUSTOM_FIELDS:
+            field_name_lower = field["SchemaName"].lower()
+            if field_name_lower not in existing_attrs:
+                try:
+                    create_custom_field(field, access_token)
+                    created_fields.append(field["SchemaName"])
+                except HTTPException as e:
+                    # If creation fails but field exists (race condition), log and continue
+                    if "already exists" in str(e.detail):
+                        existing_fields.append(field["SchemaName"])
+                        logger.info(f"Field {field['SchemaName']} already exists")
+                    else:
+                        raise
+            else:
+                existing_fields.append(field["SchemaName"])
+        
+        if created_fields:
+            publish_customizations(access_token)
+            message = f"Created fields: {', '.join(created_fields)} and published customizations"
+        else:
+            message = "All custom fields already exist - no changes needed"
+        
+        return {
+            "message": message,
+            "created_fields": created_fields,
+            "existing_fields": existing_fields,
+            "all_custom_fields": [f["SchemaName"] for f in CUSTOM_FIELDS]
+        }
+    except Exception as e:
+        logger.error(f"Error customizing contact entity: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to customize contact entity"
+        )
+        
 @app.get("/crm-entity-link")
 async def get_crm_entity_link(entity_name: str, authorization: Optional[str] = Header(None)):
     if not authorization or not authorization.startswith("Bearer "):

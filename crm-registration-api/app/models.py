@@ -1,19 +1,23 @@
-# crm-registration-api/app/models.py
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
+from datetime import date
+
 class Contact(BaseModel):
-    title: Optional[str] = None
-    firstName: str
-    middleName: Optional[str] = None
-    lastName: str
-    birthDate: Optional[str] = None
-    gender: Optional[str] = None
+    contact_id: Optional[int] = None
+    apartment_id: Optional[int] = None
+    firstname: str
+    middlename: Optional[str] = None
+    lastname: str
+    birthdate: Optional[date] = None
+    gendercode: Optional[int] = None
     nationality: Optional[str] = None
-    email: str
-    phone: str
-    address1: str
-    address2: Optional[str] = None
-    city: str
-    state: Optional[str] = None
-    postalCode: str
-    country: str
+    emailaddress1: EmailStr
+    telephone1: str
+    address1_line1: str
+    address1_line2: Optional[str] = None
+    address1_city: str
+    address1_stateorprovince: Optional[str] = None
+    address1_postalcode: str
+    address1_country: str
+    bank_account: Optional[str] = None
+    passport_id: Optional[str] = None

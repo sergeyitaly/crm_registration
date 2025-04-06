@@ -34,3 +34,11 @@ java -version # Should show 17.x.x
 
 
 fly deploy --build-only --no-cache
+
+deactivate
+rm -rf venv
+python3 -m venv venv
+source venv/bin/activate
+python3 -m pip install --upgrade pip
+pip install -r requirements.txt
+uvicorn main:app --reload
