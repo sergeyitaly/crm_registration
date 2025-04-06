@@ -18,12 +18,16 @@ echo 'export JAVA_HOME=$(/usr/libexec/java_home -v 17)' >> ~/.zshrc
 java -version # Should show 17.x.x
 
 # 3. Rebuild with clean state
-./gradlew clean
+./gradlew updateLintBaseline
+./gradlew clean assembleDebug
 ./gradlew build --refresh-dependencies
-
 ./gradlew bundleRelease
 
 
 ./gradlew --stop
 ./gradlew clean
 ./gradlew assembleDebug --stacktrace
+
+./gradlew updateLintBaseline
+ ./gradlew clean
+./gradlew assembleDebug -Pandroid.enableLintChecks=true

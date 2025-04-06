@@ -1,3 +1,5 @@
+//ApiResponse.kt
+
 package com.daniel.crmregistration.network
 
 data class ApiResponse(

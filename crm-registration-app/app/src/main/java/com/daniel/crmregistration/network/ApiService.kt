@@ -4,6 +4,7 @@ package com.daniel.crmregistration.network
 import com.daniel.crmregistration.models.Contact
 import retrofit2.Response
 import retrofit2.http.*
+import com.google.gson.annotations.SerializedName
 
 interface ApiService {
     // Backend endpoints (Fly.io)
@@ -16,20 +17,18 @@ interface ApiService {
     @GET("health")
     suspend fun healthCheck(): Response<HealthCheckResponse>
     
-    @GET("crm-entity-link")
-    suspend fun getCrmEntityLink(
+    data class HealthCheckResponse(
+        val status: String
+    )
+    @GET("crm-contacts-link")
+    suspend fun getCrmEntityListLink(
         @Query("entity_name") entityName: String
     ): Response<CrmEntityLinkResponse>
 
-
-    @GET("contacts({id})/generate-link")
-    suspend fun generateCrmContactLink(
-        @Path("id") contactId: String,
-        @Query("app_id") appId: String
-    ): Response<CrmLinkResponse>
-    
-    data class CrmLinkResponse(
-        val link: String
+    // Properly annotated data class
+    data class CrmEntityLinkResponse(
+        @SerializedName("crm_entity_link")
+        val crmEntityLink: String
     )
 
 }

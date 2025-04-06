@@ -22,6 +22,7 @@ import com.daniel.crmregistration.databinding.ActivityRegistrationBinding
 import com.daniel.crmregistration.models.Contact
 import com.daniel.crmregistration.network.ApiResponse
 import com.daniel.crmregistration.network.RetrofitClient
+import com.daniel.crmregistration.repository.CrmRepository
 import com.daniel.crmregistration.ui.theme.CRMRegistrationTheme
 import retrofit2.Call
 import retrofit2.Callback
@@ -41,11 +42,13 @@ import androidx.activity.viewModels
 import com.daniel.crmregistration.viewmodels.RegistrationViewModel
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
+
 // Main Activity (Compose)
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @Inject lateinit var apiService: ApiService
+    @Inject lateinit var crmRepository: CrmRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,6 +103,7 @@ fun GreetingPreview() {
 class RegistrationActivity : AppCompatActivity() {
     @Inject lateinit var apiService: ApiService
     @Inject lateinit var secrets: Secrets
+    @Inject lateinit var crmRepository: CrmRepository
     private lateinit var binding: ActivityRegistrationBinding
     private val viewModel: RegistrationViewModel by viewModels()
     
@@ -114,19 +118,53 @@ class RegistrationActivity : AppCompatActivity() {
         setupCrmLink()
     }
 
-private fun setupCrmContactsLink() {
-    binding.tvCrmLink.setOnClickListener {
-        lifecycleScope.launch {
-            try {
-                val crmLink = crmRepository.getAllContactsLink()
-                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(crmLink))
-                startActivity(browserIntent)
-            } catch (e: Exception) {
-                showToast("Error: ${e.message}")
+    private fun setupCrmLink() {
+        binding.tvCrmLink.setOnClickListener {
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val link = crmRepository.getCrmEntityListLink("contact")
+                    Log.d("CRM_LINK", "Generated URL: $link") // Debug log
+                    withContext(Dispatchers.Main) {
+                        openCrmLink(link)
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        val errorMsg = when {
+                            e.message?.contains("Invalid CRM URL") == true -> 
+                                "Invalid CRM configuration. Please check settings."
+                            else -> "Error opening CRM: ${e.message}"
+                        }
+                        showToast(errorMsg)
+                        Log.e("CRM_LINK", "Error generating link", e)
+                    }
+                }
             }
         }
     }
-}
+    private fun openCrmLink(url: String) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                // Add these flags for better compatibility
+                addCategory(Intent.CATEGORY_BROWSABLE)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                
+                // Optionally force Chrome if needed (uncomment if required)
+                // setPackage("com.android.chrome")
+            }
+            
+            // Verify there's an activity to handle the intent
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(intent)
+            } else {
+                showToast("No browser available to open the link")
+                Log.e("CRM", "No activity found to handle URL: $url")
+            }
+        } catch (e: Exception) {
+            showToast("Error opening CRM: ${e.message}")
+            Log.e("CRM", "Error opening URL: $url", e)
+        }
+    }
+
 
 private fun submitFormToBackend() {
     if (!validateForm()) return  // Stop if validation fails

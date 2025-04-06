@@ -5,10 +5,16 @@
             <certificates src="system"/>
         </trust-anchors>
     </base-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">YOUR_SERVER_IP</domain>
+
+    <!-- Domain configuration for your Fly.io backend -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">crm-registration.fly.dev</domain>
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
     </domain-config>
-    <!-- Domain configuration for Microsoft authentication endpoints -->
+
+    <!-- Domain configuration for Microsoft authentication -->
     <domain-config cleartextTrafficPermitted="false">
         <domain includeSubdomains="true">login.microsoftonline.com</domain>
         <domain includeSubdomains="true">login.microsoft.com</domain>
@@ -20,7 +26,7 @@
         </trust-anchors>
     </domain-config>
 
-    <!-- Domain configuration for your CRM endpoints -->
+    <!-- Domain configuration for Dynamics CRM -->
     <domain-config cleartextTrafficPermitted="false">
         <domain includeSubdomains="true">hausverwaltung-q.crm4.dynamics.com</domain>
         <trust-anchors>
@@ -28,7 +34,7 @@
         </trust-anchors>
     </domain-config>
 
-    <!-- Debug-only configuration for testing -->
+    <!-- Debug configuration -->
     <debug-overrides>
         <trust-anchors>
             <certificates src="user"/>

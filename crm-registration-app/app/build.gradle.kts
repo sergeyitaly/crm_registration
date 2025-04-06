@@ -5,7 +5,6 @@ plugins {
     id("com.google.dagger.hilt.android")
 }
 
-
 android {
     namespace = "com.daniel.crmregistration"
     compileSdk = 34
@@ -17,6 +16,7 @@ android {
         versionCode = 5
         versionName = "1.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArgument("runnerBuilder", "de.mannodermaus.junit5.AndroidJUnit5Builder")
     }
 
     buildTypes {
@@ -28,7 +28,7 @@ android {
             )
         }
     }
-
+    
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -43,7 +43,6 @@ android {
         compose = true
         viewBinding = true
         buildConfig = true
-
     }
 
     composeOptions {
@@ -65,6 +64,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    implementation ("androidx.startup:startup-runtime:1.1.1")
 
     // Compose
     implementation(platform("androidx.compose:compose-bom:2023.10.01"))
@@ -73,11 +73,16 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.8.0")
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
+    androidTestImplementation(platform("androidx.compose:compose-bom:2023.10.01"))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 
-    // Hilt
+    // Hilt (single implementation - removed duplicates)
     implementation("com.google.dagger:hilt-android:2.51")
     kapt("com.google.dagger:hilt-android-compiler:2.51")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     kapt("androidx.hilt:hilt-compiler:1.2.0")
+    implementation("androidx.activity:activity-ktx:1.8.0")
+
     // Networking
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
@@ -85,29 +90,23 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp")
     implementation("com.squareup.okhttp3:logging-interceptor")
     implementation("com.google.android.material:material:1.11.0")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")  // Updated version
-
-    implementation("javax.inject:javax.inject:1")
-    
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.21")
 
     // MSAL
     implementation("com.microsoft.identity.client:msal:4.+") {
-        exclude(group = "io.opentelemetry") // Exclude the problematic BOM
+        exclude(group = "io.opentelemetry")
         exclude(group = "com.microsoft.device.display")
     }
 
     // Testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 }
-
 
 kapt {
     correctErrorTypes = true
     javacOptions {
         option("-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true")
-        // Add these for better error reporting
         option("-Xmaxerrs", "1000")
         option("-Xmaxwarns", "1000")
     }
