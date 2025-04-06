@@ -1,10 +1,11 @@
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.android") // Version removed - controlled by classpath
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
-}
+    id("org.jetbrains.kotlin.plugin.serialization")
 
+}
 android {
     namespace = "com.daniel.crmregistration"
     compileSdk = 34
@@ -65,6 +66,9 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     implementation ("androidx.startup:startup-runtime:1.1.1")
+    implementation ("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation ("com.google.code.gson:gson:2.10.1")
+
 
     // Compose
     implementation(platform("androidx.compose:compose-bom:2023.10.01"))
@@ -77,11 +81,17 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 
     // Hilt (single implementation - removed duplicates)
-    implementation("com.google.dagger:hilt-android:2.51")
-    kapt("com.google.dagger:hilt-android-compiler:2.51")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     kapt("androidx.hilt:hilt-compiler:1.2.0")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.7.0")
+
+    implementation("com.google.dagger:hilt-android:2.51")
+    kapt("com.google.dagger:hilt-android-compiler:2.51")
     implementation("androidx.activity:activity-ktx:1.8.0")
+    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.21")
+    implementation ("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
 
     // Networking
     implementation("com.squareup.retrofit2:retrofit:2.9.0")

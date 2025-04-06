@@ -12,111 +12,192 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Personal Information -->
+        <!-- QR Scan Button -->
+        <Button
+            android:id="@+id/buttonScanQr"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Scan QR Code"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Title"/>
+
         <Spinner
             android:id="@+id/spinnerTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"/>
 
+        <!-- Contact ID Information -->
+        <TextView
+            android:id="@+id/textContactId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="Contact ID"
+            android:visibility="visible"
+            android:layout_marginBottom="8dp"/>
+        <EditText
+            android:id="@+id/editContactId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"/>
+        <TextView
+            android:id="@+id/textAppartmentId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Appartment ID"
+            android:visibility="visible"
+            android:layout_marginBottom="16dp"/>
+        <EditText
+            android:id="@+id/editAppartmentId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"/>
+        <!-- Personal Information Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Personal Information"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView 
+        android:layout_width="match_parent" 
+        android:layout_height="wrap_content" 
+        android:textStyle="bold"
+        android:text="First Name *"/>
         <EditText
             android:id="@+id/editFirstName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="First Name"
             android:layout_marginBottom="16dp"/>
 
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Middle Name"/>
         <EditText
             android:id="@+id/editMiddleName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Middle Name"
             android:layout_marginBottom="16dp"/>
 
+        <TextView 
+        android:layout_width="match_parent" 
+        android:layout_height="wrap_content" 
+        android:textStyle="bold"
+        android:text="Last Name *"/>
         <EditText
             android:id="@+id/editLastName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Last Name"
             android:layout_marginBottom="16dp"/>
 
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Birth Date (YYYY-MM-DD)"/>
         <EditText
             android:id="@+id/editBirthDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Birth Date"
             android:focusable="false"
             android:clickable="true"
             android:layout_marginBottom="16dp"/>
 
-        <!-- Keep only one spinnerGender with the hint -->
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Gender *"/>
         <Spinner
             android:id="@+id/spinnerGender"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:hint="Select Gender"/>
+            android:layout_marginBottom="16dp"/>
 
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Nationality"/>
         <Spinner
             android:id="@+id/spinnerNationality"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"/>
 
-        <!-- Contact Information -->
+        <!-- Contact Information Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Contact Information"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView 
+        android:layout_width="match_parent" 
+        android:layout_height="wrap_content" 
+        android:textStyle="bold"
+        android:text="Email *"/>
         <EditText
             android:id="@+id/etEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textEmailAddress"
-            android:hint="Email"
             android:layout_marginBottom="16dp"/>
 
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Phone Number"/>
         <EditText
             android:id="@+id/etPhone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="phone"
-            android:hint="Phone Number"
             android:layout_marginBottom="16dp"/>
 
-        <!-- Address Information -->
+        <!-- Address Information Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Address Information"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Address Line 1"/>
         <EditText
             android:id="@+id/editAddress1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Address Line 1"
             android:layout_marginBottom="16dp"/>
 
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Address Line 2"/>
         <EditText
             android:id="@+id/editAddress2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Address Line 2"
             android:layout_marginBottom="16dp"/>
 
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="City"/>
         <EditText
             android:id="@+id/editCity"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="City"
             android:layout_marginBottom="16dp"/>
 
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="State/Province"/>
         <EditText
             android:id="@+id/editState"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="State/Province"
             android:layout_marginBottom="16dp"/>
 
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Postal Code"/>
         <EditText
             android:id="@+id/editPostalCode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Postal Code"
             android:layout_marginBottom="16dp"/>
 
-        <!-- Passport/ID Information -->
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Country"/>
+        <Spinner
+            android:id="@+id/spinnerCountry"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Identification Information Section -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -125,21 +206,13 @@
             android:layout_marginTop="16dp"
             android:layout_marginBottom="8dp"/>
 
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Passport/ID Number"/>
         <EditText
-            android:id="@+id/editPassportNumber"
+            android:id="@+id/editPassport"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Passport/ID Number"
             android:layout_marginBottom="16dp"/>
 
-        <EditText
-            android:id="@+id/editIdExpiryDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Expiry Date (YYYY-MM-DD)"
-            android:layout_marginBottom="16dp"/>
-
-        <!-- Bank Account Information -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -148,29 +221,9 @@
             android:layout_marginTop="16dp"
             android:layout_marginBottom="8dp"/>
 
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Bank Account Number"/>
         <EditText
-            android:id="@+id/editBankAccountNumber"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Bank Account Number"
-            android:layout_marginBottom="16dp"/>
-
-        <EditText
-            android:id="@+id/editBankName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Bank Name"
-            android:layout_marginBottom="16dp"/>
-
-        <EditText
-            android:id="@+id/editBankBranch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Branch Name"
-            android:layout_marginBottom="16dp"/>
-
-        <Spinner
-            android:id="@+id/spinnerCountry"
+            android:id="@+id/editBankAccount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"/>
@@ -180,7 +233,10 @@
             android:id="@+id/buttonSubmit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Register in CRM"/>
+            android:text="Register in CRM"
+            android:layout_marginTop="24dp"/>
+
+        <!-- CRM Link -->
         <TextView
             android:id="@+id/tvCrmLink"
             android:layout_width="match_parent"
@@ -190,8 +246,11 @@
             android:textStyle="bold"
             android:gravity="center"
             android:padding="16dp"
+            android:background="@color/purple_500"
+            android:layout_marginTop="16dp"
             android:clickable="true"
             android:focusable="true"
-            android:foreground="?selectableItemBackground"/>
+            android:visibility="gone"/>
     </LinearLayout>
+
 </ScrollView>

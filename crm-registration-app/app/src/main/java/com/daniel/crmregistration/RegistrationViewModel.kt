@@ -26,22 +26,6 @@ class RegistrationViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _registrationState = MutableStateFlow<Result<Unit>?>(null)
-    val registrationState: StateFlow<Result<Unit>?> = _registrationState
-
-    fun registerContact(contact: Contact) {
-        viewModelScope.launch {
-            try {
-                val authToken = tokenManager.getAuthToken()
-                val response = apiService.createContact(contact, authToken)
-                handleResponse(response)
-            } catch (e: Exception) {
-                _registrationState.value = Result.Failure(
-                    Exception("Network error: ${e.message}")
-                )
-            }
-        }
-    }
-
     private fun handleResponse(response: Response<ApiResponse>) {
         when {
             response.isSuccessful -> {

@@ -1,4 +1,3 @@
-// ApiService.kt
 package com.daniel.crmregistration.network
 
 import com.daniel.crmregistration.models.Contact
@@ -14,12 +13,20 @@ interface ApiService {
         @Header("Authorization") authToken: String
     ): Response<ApiResponse>
 
+    @PUT("contacts/{contactId}")
+    suspend fun updateContact(
+        @Path("contactId") contactId: String,
+        @Body contact: Contact,
+        @Header("Authorization") authToken: String
+    ): Response<ApiResponse>
+    
     @GET("health")
     suspend fun healthCheck(): Response<HealthCheckResponse>
     
     data class HealthCheckResponse(
         val status: String
     )
+
     @GET("crm-contacts-link")
     suspend fun getCrmEntityListLink(
         @Query("entity_name") entityName: String
@@ -30,5 +37,4 @@ interface ApiService {
         @SerializedName("crm_entity_link")
         val crmEntityLink: String
     )
-
 }

@@ -1,0 +1,21 @@
+<resources>
+    <string-array name="countries_array">
+        <item>USA</item>
+        <item>UK</item>
+        <item>Germany</item>
+        <item>France</item>
+        <item>Spain</item>
+        <item>Ukraine</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="nationalities_array">
+        <item>American</item>
+        <item>British</item>
+        <item>German</item>
+        <item>French</item>
+        <item>Spanish</item>
+        <item>Ukraine</item>
+        <item>Other</item>
+    </string-array>
+</resources>
