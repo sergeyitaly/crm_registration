@@ -1,10 +1,11 @@
 # Dockerfile
+
 FROM python:3.9
 
 # Set working directory
 WORKDIR /app
 
-# Copy requirements first for better caching
+# Copy only requirements first for better caching
 COPY crm-registration-api/requirements.txt .
 
 # Install dependencies
