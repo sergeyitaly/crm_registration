@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM python:3.12
 
 WORKDIR /app
 
@@ -12,16 +12,9 @@ COPY crm-registration-api/requirements.txt .
 
 # Install Python dependencies globally (no virtualenv)
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install requests uvicorn fastapi  # Explicit install as fallback
-
+    pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY crm-registration-api/ .
-
-# Verify installations
-RUN python -c "import requests; print(f'Requests version: {requests.__version__}')" && \
-    python -c "import uvicorn; print(f'Uvicorn version: {uvicorn.__version__}')" && \
-    python -c "import fastapi; print(f'FastAPI version: {fastapi.__version__}')"
 
 EXPOSE 8000
 
