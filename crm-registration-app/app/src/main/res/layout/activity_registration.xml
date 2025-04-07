@@ -57,6 +57,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"/>
+        <TextView
+            android:id="@+id/textBuildingName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Building Name"
+            android:visibility="visible"
+            android:layout_marginBottom="16dp"/>
+        <EditText
+            android:id="@+id/editBuildingName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"/>
         <!-- Personal Information Section -->
         <TextView
             android:layout_width="match_parent"

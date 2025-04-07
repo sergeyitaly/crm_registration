@@ -3,6 +3,7 @@ package com.daniel.crmregistration.di
 import android.content.Context
 import com.daniel.crmregistration.Secrets
 import com.daniel.crmregistration.network.*
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,6 +22,10 @@ import javax.inject.Named
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
     private const val TIMEOUT_SECONDS = 30L
+
+    @Provides
+    @Singleton
+    fun provideGson(): Gson = Gson()
 
     @Provides
     @Singleton
@@ -63,7 +68,7 @@ object NetworkModule {
             .addInterceptor { chain ->
                 val token = tokenManager.getAuthTokenBlocking()
                 chain.request().newBuilder()
-                    .header("Authorization", token)
+                    .header("Authorization", "Bearer $token")
                     .build()
                     .let { chain.proceed(it) }
             }
@@ -74,12 +79,13 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(
         @Named("authenticatedClient") client: OkHttpClient,
-        secrets: Secrets
+        secrets: Secrets,
+        gson: Gson
     ): Retrofit {
         return Retrofit.Builder()
             .baseUrl(secrets.crmUrl)
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }
 

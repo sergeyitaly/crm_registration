@@ -244,23 +244,21 @@ private fun parseQrContent(qrContent: String): Contact {
     val lines = qrContent.split("\n")
     val dataMap = mutableMapOf<String, String>()
 
+    // Normalize all keys by removing spaces and making lowercase
     for (line in lines) {
         if (line.contains(":")) {
             val parts = line.split(":", limit = 2)
-            // Normalize the key by removing spaces and making lowercase
             val key = parts[0].trim().lowercase().replace(" ", "")
             val value = parts[1].trim()
             dataMap[key] = value
         }
     }
-    val contactId = dataMap["contactid"] ?: dataMap["contact_id"] 
-        ?: throw IllegalArgumentException("Contact ID is required")
 
     // Debug log to see what was parsed
     Log.d("QR_PARSER", "Parsed data: $dataMap")
 
     return Contact(
-        contactId = contactId,
+        contactId = dataMap["contactid"] ?: throw IllegalArgumentException("Contact ID is required"),
         firstName = dataMap["firstname"] ?: throw IllegalArgumentException("First name is required"),
         middleName = dataMap["middlename"],
         lastName = dataMap["lastname"] ?: throw IllegalArgumentException("Last name is required"),
@@ -272,15 +270,16 @@ private fun parseQrContent(qrContent: String): Contact {
         nationality = dataMap["nationality"],
         email = dataMap["emailaddress1"] ?: throw IllegalArgumentException("Email is required"),
         phone = dataMap["telephone1"],
-        address1 = dataMap["address1line1"] ?: dataMap["address1_line1"],
-        address2 = dataMap["address1line2"] ?: dataMap["address1_line2"],
-        city = dataMap["address1city"] ?: dataMap["address1_city"],
-        state = dataMap["address1stateorprovince"] ?: dataMap["address1_stateorprovince"],
-        postalCode = dataMap["address1postalcode"] ?: dataMap["address1_postalcode"],
-        country = dataMap["address1country"] ?: dataMap["address1_country"],
-        appartmentId = dataMap["new_appartmentid"] ?: dataMap["appartmentid"] ?: dataMap["apartment_id"],
-        bankAccount = dataMap["new_bankaccount"] ?: dataMap["bankaccount"] ?: dataMap["bank_account"],
-        passportId = dataMap["new_passportid"] ?: dataMap["passportid"] ?: dataMap["passport_id"]
+        address1 = dataMap["address1line1"] ?: dataMap["address1line1"],
+        address2 = dataMap["address1line2"] ?: dataMap["address1line2"],
+        city = dataMap["address1city"],
+        state = dataMap["address1stateorprovince"],
+        postalCode = dataMap["address1postalcode"],
+        country = dataMap["address1country"],
+        appartmentId = dataMap["appartmentid"] ?: dataMap["apartmentnumber"],
+        bankAccount = dataMap["bankaccount"],
+        passportId = dataMap["passportid"],
+        buildingName = dataMap["buildingname"]
     )
 }
 
@@ -289,8 +288,9 @@ private fun populateFormWithContact(contact: Contact) {
 
     try {
         // Contact and apartment IDs
-        contact.contactId?.let { binding.editContactId.setText(it) }
+        binding.editContactId.setText(contact.contactId)
         contact.appartmentId?.let { binding.editAppartmentId.setText(it) }
+        contact.buildingName?.let { binding.editBuildingName.setText(it) }
 
         // Personal Information
         binding.editFirstName.setText(contact.firstName)
@@ -300,26 +300,23 @@ private fun populateFormWithContact(contact: Contact) {
         // Format birth date if available
         contact.birthDate?.let { dateStr ->
             try {
-                // Parse and reformat date if needed
                 val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 val outputFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
                 val date = inputFormat.parse(dateStr)
                 binding.editBirthDate.setText(outputFormat.format(date))
             } catch (e: Exception) {
-                // If parsing fails, use the raw string
                 binding.editBirthDate.setText(dateStr)
                 Log.w("DATE_PARSE", "Couldn't parse date: $dateStr")
             }
         }
         
-        // Set gender spinner
-        contact.genderCode?.let { code ->
-            val position = when(code) {
+        // Set gender spinner (0 = Male, 1 = Female)
+        binding.spinnerGender.setSelection(
+            when(contact.genderCode) {
                 2 -> 1 // Female
                 else -> 0 // Male
             }
-            binding.spinnerGender.setSelection(position)
-        }
+        )
 
         // Contact Information
         binding.etEmail.setText(contact.email)
@@ -336,11 +333,10 @@ private fun populateFormWithContact(contact: Contact) {
         contact.country?.let { country ->
             val countries = resources.getStringArray(R.array.countries_array)
             val position = countries.indexOfFirst { it.equals(country, ignoreCase = true) }
-            if (position >= 0) {
-                binding.spinnerCountry.setSelection(position)
-            }
+            if (position >= 0) binding.spinnerCountry.setSelection(position)
         }
 
+        // Financial and Identification
         binding.editPassport.setText(contact.passportId)
         binding.editBankAccount.setText(contact.bankAccount)
 
@@ -348,16 +344,14 @@ private fun populateFormWithContact(contact: Contact) {
         contact.nationality?.let { nationality ->
             val nationalities = resources.getStringArray(R.array.nationalities_array)
             val position = nationalities.indexOfFirst { it.equals(nationality, ignoreCase = true) }
-            if (position >= 0) {
-                binding.spinnerNationality.setSelection(position)
-            }
+            if (position >= 0) binding.spinnerNationality.setSelection(position)
         }
+
     } catch (e: Exception) {
         Log.e("FORM_POPULATE", "Error populating form", e)
-        showToast("Error loading contact data")
+        showToast("Error loading contact data: ${e.message}")
     }
 }
-
     private fun clearForm() {
     // Clear all text fields
     binding.editFirstName.text?.clear()
@@ -373,6 +367,7 @@ private fun populateFormWithContact(contact: Contact) {
     binding.editPostalCode.text?.clear()
     binding.editPassport.text?.clear()
     binding.editAppartmentId.text?.clear()
+    binding.editBuildingName.text?.clear()
     binding.editBankAccount.text?.clear()
     binding.editContactId.text?.clear()
 
@@ -453,6 +448,7 @@ private fun submitFormToBackend() {
     val contact = Contact(
         contactId = processedContactId, // Use the processed ID
         appartmentId = binding.textAppartmentId.text.toString().takeIf { it.isNotEmpty() },
+        buildingName = binding.textBuildingName.text.toString().takeIf { it.isNotEmpty() },
         firstName = binding.editFirstName.text.toString(),
         middleName = binding.editMiddleName.text.toString().takeIf { it.isNotEmpty() },
         lastName = binding.editLastName.text.toString(),

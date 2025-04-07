@@ -57,6 +57,13 @@ CUSTOM_FIELDS = [
         "Description": {"LocalizedLabels": [{"Label": "ID of the appartment", "LanguageCode": 1033}]},
         "AttributeType": "String",
         "MaxLength": 50
+    },
+        {
+        "SchemaName": f"{CUSTOMIZATION_PREFIX}buildingname",
+        "DisplayName": {"LocalizedLabels": [{"Label": "Building Name", "LanguageCode": 1033}]},
+        "Description": {"LocalizedLabels": [{"Label": "Name of Building", "LanguageCode": 1033}]},
+        "AttributeType": "String",
+        "MaxLength": 50
     }
 ]
 

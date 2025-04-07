@@ -19,6 +19,7 @@ data class Contact(
     @SerializedName("address1_postalcode") val postalCode: String?,
     @SerializedName("address1_country") val country: String?,
     @SerializedName("new_appartmentid") val appartmentId: String?,
+    @SerializedName("new_buildingname") val buildingName: String?,
     @SerializedName("new_bankaccount") val bankAccount: String?,
     @SerializedName("new_passportid") val passportId: String?
 )
