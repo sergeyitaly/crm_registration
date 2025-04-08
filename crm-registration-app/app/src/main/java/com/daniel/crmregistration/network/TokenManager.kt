@@ -26,19 +26,25 @@ class TokenManager @Inject constructor(
     private var cachedCrmToken: String? = null
     private var crmTokenExpiry: Long = 0
 
-    suspend fun getAuthToken(): String {
-        return getToken(::acquireNewAuthToken, ::cachedAuthToken, ::authTokenExpiry) {
+    fun getAuthTokenBlocking(): String = runBlocking {
+        getAuthToken()
+    }
+    fun refreshToken(): String = runBlocking {
+        acquireNewAuthToken().also {
             cachedAuthToken = it
             authTokenExpiry = System.currentTimeMillis() + 3600000
         }
     }
 
-    fun getAuthTokenBlocking(): String = runBlocking {
-        getAuthToken()
+    suspend fun getAuthToken(): String {
+        return getToken(::acquireNewAuthToken, { cachedAuthToken }, { authTokenExpiry }) {
+            cachedAuthToken = it
+            authTokenExpiry = System.currentTimeMillis() + 3600000
+        }
     }
 
     suspend fun getCrmToken(): String {
-        return getToken(::acquireNewCrmToken, ::cachedCrmToken, ::crmTokenExpiry) {
+        return getToken(::acquireNewCrmToken, { cachedCrmToken }, { crmTokenExpiry }) {
             cachedCrmToken = it
             crmTokenExpiry = System.currentTimeMillis() + 3600000
         }
@@ -57,14 +63,14 @@ class TokenManager @Inject constructor(
             acquireToken().also(updateCache)
         }
     }
+private suspend fun acquireNewAuthToken(): String {
+    val tokenResponse = requestToken()
+    return tokenResponse.accessToken.trim() // no "Bearer"
+}
 
-    private suspend fun acquireNewAuthToken(): String {
-        return "Bearer " + requestToken().accessToken
-    }
-
-    private suspend fun acquireNewCrmToken(): String {
-        return "Bearer " + requestToken().accessToken
-    }
+private suspend fun acquireNewCrmToken(): String {
+    return requestToken().accessToken.trim() // no "Bearer"
+}
 
     private suspend fun requestToken(): TokenResponse {
         val requestBody = FormBody.Builder()

@@ -6,19 +6,14 @@ import retrofit2.http.*
 import com.google.gson.annotations.SerializedName
 
 interface ApiService {
-    // Backend endpoints (Fly.io)
     @POST("contacts")
-    suspend fun createContact(
+    @Headers("Content-Type: application/json")
+    suspend fun upsertContact(
         @Body contact: Contact,
-        @Header("Authorization") authToken: String
+        @Header("Authorization") authHeader: String
     ): Response<ApiResponse>
 
-    @PUT("contacts/{contactId}")
-    suspend fun updateContact(
-        @Path("contactId") contactId: String,
-        @Body contact: Contact,
-        @Header("Authorization") authToken: String
-    ): Response<ApiResponse>
+
     
     @GET("health")
     suspend fun healthCheck(): Response<HealthCheckResponse>

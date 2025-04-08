@@ -14,3 +14,4 @@ app/secrets.xmlapp/src/main/assets/secrets.properties
 crm-registration-app/app/src/main/assets/secrets.properties
 crm-registration-api/__pycache__
 query
+crm-registration-app/app/release/
