@@ -266,8 +266,7 @@
             android:background="@color/purple_500"
             android:layout_marginTop="16dp"
             android:clickable="true"
-            android:focusable="true"
-            android:visibility="gone"/>
+            android:focusable="true"/>
     </LinearLayout>
 
 </ScrollView>

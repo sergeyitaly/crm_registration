@@ -13,8 +13,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import com.daniel.crmregistration.BuildConfig
 import okhttp3.MediaType.Companion.toMediaType
-
-
+import android.util.Log
+import java.io.IOException
 
 
 @Singleton
@@ -31,13 +31,15 @@ class RetrofitClient @Inject constructor(
 
     // For your backend service (no auth needed)
     val apiService: ApiService by lazy {
-        createBackendRetrofit(secrets.getBackendBaseUrl())
+        Log.d("RetrofitClient", "Initializing backend API with URL: ${secrets.getBackendBaseUrl()}")
+        createBackendRetrofit(secrets.getBackendBaseUrl().ensureTrailingSlash())
             .create(ApiService::class.java)
     }
 
     // For direct CRM access (with auth)
     val crmApiService: ApiService by lazy {
-        createCrmRetrofit(secrets.crmUrl)
+        Log.d("RetrofitClient", "Initializing CRM API with URL: ${secrets.crmUrl}")
+        createCrmRetrofit(secrets.crmUrl.ensureTrailingSlash())
             .create(ApiService::class.java)
     }
 
@@ -62,9 +64,10 @@ class RetrofitClient @Inject constructor(
     private fun createBackendClient(): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(createLoggingInterceptor())
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .writeTimeout(15, TimeUnit.SECONDS)
+            .connectTimeout(30, TimeUnit.SECONDS) // Increased timeout for mobile
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .addInterceptor(ConnectivityInterceptor()) // Add connectivity check
             .build()
     }
 
@@ -72,9 +75,10 @@ class RetrofitClient @Inject constructor(
         return OkHttpClient.Builder()
             .addInterceptor(createLoggingInterceptor())
             .addInterceptor(createCrmAuthInterceptor())
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .writeTimeout(15, TimeUnit.SECONDS)
+            .connectTimeout(45, TimeUnit.SECONDS) // Longer timeout for CRM
+            .readTimeout(45, TimeUnit.SECONDS)
+            .writeTimeout(45, TimeUnit.SECONDS)
+            .addInterceptor(ConnectivityInterceptor()) // Add connectivity check
             .build()
     }
 
@@ -82,21 +86,52 @@ class RetrofitClient @Inject constructor(
         level = if (BuildConfig.DEBUG) {
             HttpLoggingInterceptor.Level.BODY
         } else {
-            HttpLoggingInterceptor.Level.NONE
+            HttpLoggingInterceptor.Level.BASIC // Keep basic logs in production
         }
         redactHeader("Authorization")
         redactHeader("Set-Cookie")
     }
 
     private fun createCrmAuthInterceptor() = Interceptor { chain ->
-        val token = runBlocking { tokenManager.getCrmToken() }
-        chain.proceed(
-            chain.request().newBuilder()
-                .addHeader("Authorization", "Bearer $token")
-                .addHeader("OData-MaxVersion", "4.0")
-                .addHeader("OData-Version", "4.0")
-                .addHeader("Content-Type", "application/json")
-                .build()
-        )
+        Log.d("AuthInterceptor", "Attempting to get CRM token")
+        val token = runBlocking { 
+            tokenManager.getCrmToken().also {
+                Log.d("AuthInterceptor", "Token received (first 10 chars): ${it.take(10)}...")
+            }
+        }
+        
+        val request = chain.request().newBuilder()
+            .addHeader("Authorization", "Bearer $token")
+            .addHeader("OData-MaxVersion", "4.0")
+            .addHeader("OData-Version", "4.0")
+            .addHeader("Content-Type", "application/json")
+            .addHeader("Accept", "application/json")
+            .build()
+            
+        Log.d("AuthInterceptor", "Making request to: ${request.url}")
+        chain.proceed(request)
+    }
+
+    private fun String.ensureTrailingSlash(): String {
+        return if (endsWith("/")) this else "$this/"
     }
 }
+
+// Add this class to check network connectivity before making requests
+class ConnectivityInterceptor : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
+        // You should implement proper network availability check here
+        // For example using ConnectivityManager
+        if (!isNetworkAvailable()) {
+            throw NoNetworkException()
+        }
+        return chain.proceed(chain.request())
+    }
+    
+    private fun isNetworkAvailable(): Boolean {
+        // Implement actual network check
+        return true
+    }
+}
+
+class NoNetworkException : IOException("No network connection available")

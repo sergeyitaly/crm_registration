@@ -410,7 +410,7 @@ class RegistrationActivity : AppCompatActivity() {
             contact.birthDate?.let { dateStr ->
                 try {
                     val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                    val outputFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+                    val outputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                     val date = inputFormat.parse(dateStr)
                     binding.editBirthDate.setText(outputFormat.format(date))
                 } catch (e: Exception) {
@@ -465,71 +465,98 @@ class RegistrationActivity : AppCompatActivity() {
     /* ======================= */
     /* === CRM Operations === */
     /* ======================= */
-
     private fun submitFormToBackend() {
-        val rawContactId = binding.editContactId.text.toString().trim()
-        if (rawContactId.isEmpty()) {
-            showToast("Contact ID is required.")
-            return
-        }
+    val rawContactId = binding.editContactId.text.toString().trim()
+    if (rawContactId.isEmpty()) {
+        showToast("Contact ID is required.")
+        return
+    }
 
-        lifecycleScope.launch {
-            try {
-                val authToken = tokenManager.getAuthToken().takeIf { it.isNotBlank() } 
-                    ?: run {
-                        showToast("Authentication required. Please login again.")
-                        return@launch
-                    }
-
-                // Generate or format the contact ID
-                val contactId = when {
-                    isValidGuid(rawContactId) -> rawContactId
-                    else -> generateGuid("contact", rawContactId)
+    lifecycleScope.launch {
+        try {
+            val authToken = tokenManager.getAuthToken().takeIf { it.isNotBlank() }
+                ?: run {
+                    showToast("Authentication required. Please login again.")
+                    return@launch
                 }
 
-                // Create the contact object with the contactId
-                val contact = createContactObject().copy(
-                    contactId = contactId
+            // First try to GET the contact to check if it exists
+            val getResponse = try {
+                apiService.getContact(
+                    contactId = rawContactId,
+                    authHeader = "Bearer $authToken"
                 )
-
-                // Make the upsert call
-                val response = apiService.upsertContact(
-                    contact = contact,
-                    authHeader = authToken
-                )
-
-                handleResponse(response, response.code() == 204)
             } catch (e: Exception) {
-                showToast("Error: ${e.message ?: "Failed to process contact"}")
-                Log.e("ContactAPI", "Operation failed", e)
+                null // If GET fails, we'll treat as new contact
             }
+
+            val contact = createContactObject().copy(contactId = rawContactId)
+
+            if (getResponse?.isSuccessful == true) {
+                // Contact exists - perform UPDATE
+                val updateResponse = apiService.updateContact(
+                    contactId = rawContactId,
+                    contact = contact,
+                    authHeader = "Bearer $authToken"
+                )
+
+                if (updateResponse.isSuccessful) {
+                    val updatedContact = updateResponse.body()
+                    val name = updatedContact?.firstName ?: "Unknown"
+                    showToast("✅ Contact '$name' updated successfully.")
+                    Log.d("ContactAPI", "Update success. Contact ID: ${updatedContact?.contactId}")
+                } else {
+                    handleErrorResponse(updateResponse)
+                }
+            } else {
+                // Contact doesn't exist - perform CREATE
+                val createResponse = apiService.createContact(
+                    contact = contact,
+                    authHeader = "Bearer $authToken"
+                )
+
+                if (createResponse.isSuccessful) {
+                    val createdContact = createResponse.body()
+                    val name = createdContact?.firstName ?: "Unknown"
+                    showToast("🎉 New contact '$name' created successfully.")
+                    Log.d("ContactAPI", "Create success. Contact ID: ${createdContact?.contactId}")
+                } else {
+                    handleErrorResponse(createResponse)
+                }
+            }
+
+        } catch (e: Exception) {
+            showToast("⚠️ Network error: ${e.message ?: "Please check your connection"}")
+            Log.e("ContactAPI", "Operation failed", e)
         }
     }
+}
 
-    private fun createContactObject(): Contact {
-        return Contact(
-            appartmentId = binding.editAppartmentId.text.toString().takeIf { it.isNotEmpty() },
-            buildingName = binding.editBuildingName.text.toString().takeIf { it.isNotEmpty() },
-            firstName = binding.editFirstName.text.toString(),
-            middleName = binding.editMiddleName.text.toString().takeIf { it.isNotEmpty() },
-            lastName = binding.editLastName.text.toString(),
-            birthDate = binding.editBirthDate.text.toString().takeIf { it.isNotEmpty() },
-            genderCode = when (binding.spinnerGender.selectedItemPosition) {
-                1 -> 2
-                else -> 1
-            },
-            email = binding.etEmail.text.toString(),
-            phone = binding.etPhone.text.toString().takeIf { it.isNotEmpty() },
-            address1 = binding.editAddress1.text.toString().takeIf { it.isNotEmpty() },
-            address2 = binding.editAddress2.text.toString().takeIf { it.isNotEmpty() },
-            city = binding.editCity.text.toString().takeIf { it.isNotEmpty() },
-            state = binding.editState.text.toString().takeIf { it.isNotEmpty() },
-            postalCode = binding.editPostalCode.text.toString().takeIf { it.isNotEmpty() },
-            country = binding.spinnerCountry.selectedItem?.toString().takeIf { it != "Select Country" },
-            bankAccount = binding.editBankAccount.text.toString().takeIf { it.isNotEmpty() },
-            passportId = binding.editPassport.text.toString().takeIf { it.isNotEmpty() }
-        )
-    }
+private fun createContactObject(contactId: String? = null): Contact {
+    return Contact(
+        contactId = contactId, // Add this for updates
+        firstName = binding.editFirstName.text.toString(),
+        lastName = binding.editLastName.text.toString(),
+        middleName = binding.editMiddleName.text.toString().takeIf { it.isNotEmpty() },
+        birthDate = binding.editBirthDate.text.toString().takeIf { it.isNotEmpty() },
+        genderCode = when (binding.spinnerGender.selectedItemPosition) {
+            1 -> 2
+            else -> 1
+        },
+        email = binding.etEmail.text.toString(),
+        phone = binding.etPhone.text.toString().takeIf { it.isNotEmpty() },
+        address1 = binding.editAddress1.text.toString().takeIf { it.isNotEmpty() },
+        address2 = binding.editAddress2.text.toString().takeIf { it.isNotEmpty() },
+        city = binding.editCity.text.toString().takeIf { it.isNotEmpty() },
+        state = binding.editState.text.toString().takeIf { it.isNotEmpty() },
+        postalCode = binding.editPostalCode.text.toString().takeIf { it.isNotEmpty() },
+        country = binding.spinnerCountry.selectedItem?.toString().takeIf { it != "Select Country" },
+        appartmentId = binding.editAppartmentId.text.toString().takeIf { it.isNotEmpty() },
+        buildingName = binding.editBuildingName.text.toString().takeIf { it.isNotEmpty() },
+        bankAccount = binding.editBankAccount.text.toString().takeIf { it.isNotEmpty() },
+        passportId = binding.editPassport.text.toString().takeIf { it.isNotEmpty() }
+    )
+}
 
     /* ======================= */
     /* === Helper Methods === */

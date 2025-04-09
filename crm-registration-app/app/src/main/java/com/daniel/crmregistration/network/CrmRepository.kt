@@ -13,12 +13,29 @@ class CrmRepository @Inject constructor(
     private val tokenManager: TokenManager,
     private val secrets: Secrets
 ) {
-    suspend fun upsertContact(contact: Contact): Response<ApiResponse> = try {
-        val token = tokenManager.getAuthToken() ?: throw Exception("Authentication token not available")
-        apiService.upsertContact(contact, token)
-    } catch (e: Exception) {
-        throw Exception("Failed to upsert contact: ${e.message}")
+
+    suspend fun upsertContact(contact: Contact): Response<Contact> = try {
+    val token = tokenManager.getAuthToken() ?: throw Exception("Authentication token not available")
+    val authHeader = "Bearer $token"
+    
+    if (contact.contactId.isNullOrEmpty()) {
+        // Create new contact
+        apiService.createContact(
+            contact = contact,
+            authHeader = authHeader
+        )
+    } else {
+        // Update existing contact
+        apiService.updateContact(
+            contactId = contact.contactId,
+            contact = contact,
+            authHeader = authHeader
+        )
     }
+} catch (e: Exception) {
+    throw Exception("Failed to upsert contact: ${e.message}")
+}
+
 
     fun getCrmEntityListLink(entityName: String): String {
         return try {

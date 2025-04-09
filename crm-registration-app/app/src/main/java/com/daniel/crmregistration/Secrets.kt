@@ -53,7 +53,14 @@ class Secrets @Inject constructor(
             }
     }
 
-    val crmUrl: String get() = getRequiredProperty("CRM_URL")
+    // In your Secrets class, ensure proper URL handling:
+    val crmUrl: String get() = getRequiredProperty("CRM_URL").also { url ->
+        // Ensure URL ends with slash
+        if (!url.endsWith("/")) {
+            throw IllegalArgumentException("CRM_URL must end with /")
+        }
+        Log.d("SECRETS", "Using CRM URL: $url")
+    }
     val tenantId: String get() = getRequiredProperty("TENANT_ID")
     val clientId: String get() = getRequiredProperty("CLIENT_ID")
     val clientSecret: String get() = getRequiredProperty("CLIENT_SECRET")
