@@ -340,14 +340,6 @@ DATABASE_URL = (
     "&options=-c%20search_path=public"
 )
 
-
-DATABASE_URL = (
-    "postgresql://postgres.fjidkcmtdtpjinkriocx:nsYzhcDihdjs2W74@"
-    "aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
-    "?sslmode=require"
-    "&gssencmode=disable"
-    "&options=-c%20search_path=public"
-)
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -367,7 +359,7 @@ def get_contact(contact_id: int):
             result = session.execute(
                 text("""
                 SELECT c.*, a.apartment_number, b.building_name
-                FROM contacts c
+                FROM contacts_qr c
                 JOIN apartments a ON c.apartment_id = a.apartment_id
                 JOIN buildings b ON a.building_id = b.building_id
                 WHERE c.contact_id = :contact_id
